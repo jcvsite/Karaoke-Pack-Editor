@@ -21,7 +21,7 @@ Create, open, and maintain open karaoke packs — <strong>.krpk</strong> song li
 ### 💻 Main window (Windows desktop)
 
 ![Pack Editor — main list and toolbar](screenshots/03-main-list.png)
-_Dark theme · Compact list · search across ~48k songs · full toolbar for pack ops, QA, covers, and export._
+_Dark theme · Compact list · search across ~50k songs · full toolbar for pack ops, QA, covers, and export._
 
 ### ✏️ Edit song
 
