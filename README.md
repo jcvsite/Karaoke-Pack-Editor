@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="screenshots/app-icon.png" alt="JCV's Karaoke Pack Editor Logo" width="192"/>
+  <img src="screenshots/app-icon.png" alt="JCV Karaoke Pack Editor Logo" width="192"/>
 </p>
 
-<h1 align="center">JCV's Karaoke Pack Editor</h1>
+<h1 align="center">JCV Karaoke Pack Editor</h1>
 
 <p align="center">
   <img src="https://img.shields.io/badge/platform-Windows%20%7C%20Android%20%7C%20Mac-blue.svg" alt="Platforms">
@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-Create, open, and maintain open karaoke packs — <strong>.krpk</strong> song libraries and sibling <strong>.krcp</strong> album covers — for <strong>JCV's Karaoke</strong>. Built for large libraries (tens of thousands of songs), folder import, metadata cleanup, cover bake, and CSV / song-book export.
+Create, open, and maintain open karaoke packs — <strong>.krpk</strong> song libraries and sibling <strong>.krcp</strong> album covers — for <strong>JCV Karaoke</strong>. Built for large libraries (tens of thousands of songs): folder import, song-quality checks, lyric fixes, metadata cleanup, online tags and covers, and CSV / song-book export.
 </p>
 
 > **Status:** Preview page — screenshots and feature overview first. **Source code will be published after review.** Build scripts below describe the upcoming tree.
@@ -21,7 +21,7 @@ Create, open, and maintain open karaoke packs — <strong>.krpk</strong> song li
 ### 💻 Main window (Windows desktop)
 
 ![Pack Editor — main list and toolbar](screenshots/03-main-list.png)
-_Dark theme · Compact list · search across ~50k songs · full toolbar for pack ops, QA, covers, and export._
+_Dark theme · Compact list · search across ~50k songs · toolbar grouped into File, Add songs, Clean up, Online and Export._
 
 ### ✏️ Edit song
 
@@ -35,33 +35,66 @@ _One JPEG per artist + album (shared by every song on that album). Preview, Repl
 
 ### 🔍 Key capabilities
 
-- **📁 Pack file ops:** New / Open / Save / Save As `.krpk`, unsaved `*` marker, discard prompt, drag-drop or **Add files** (MIDI / KAR / MP3)
-- **📥 Import folder:** Recursive scan, unused song #, CRC skip if already in pack, preview with editable tags / origin before Import
-- **🔢 Auto song #:** Allocate unused codes from filenames or sequential numbering
-- **🔎 Find dupes:** Code / title+artist / CRC duplicate scan
-- **🔀 Merge & Diff packs:** CRC-dedupe merge from another `.krpk`; CRC index diff (added / removed / changed tags)
-- **♻️ Reassign codes + Undo:** Bulk renumber with an undo stack covering clean / merge / bulk / save-related edits
-- **✨ Clean titles:** Local Title Case + artist spelling; optional MusicBrainz
-- **🎚️ Genre QA:** Religious denylist preview — clear false-positive genre tags
-- **🏷️ Fetch tags:** Opt-in iTunes lookup (title / artist / album / genre / year) with preview
-- **🎨 Covers pack (`.krcp`):** Opt-in cover fetch, per-row preview/edit, **Save covers pack** / **Export covers…**, baked beside `.krpk` on Save
-- **🗃️ Custom meta DB:** Sparse `custom_meta.sqlite` by payload CRC32 — Seed DB / Export custom CSV / revert; Save bakes into pack
-- **📤 Export CSV:** `song_list.csv` + `song_tags.csv` (album / year from extra)
-- **📖 Song book…:** Printable PDF list
-- **🎛️ Appearance:** Compact density, font size, Dark / Light / OLED themes, online toggles, custom meta DB path
-- **🧩 Shared format core:** Same open pack library as the player — KRPK / KRCP layout stays in sync
+**📁 File**
+- **New / Open / Save / Save As** `.krpk`, unsaved `*` marker, discard prompt, Ctrl+S / Ctrl+Shift+S
+- **Fast, safe saving of big packs:** unchanged songs are copied as stored (no re-compress), new songs are packed and streamed to disk, and the file replaces the pack only when complete — a failed save never damages your library. A ~50,000-song library with 2,000 new songs saves in about 16 s, with a **progress bar**
+- **Undo** stack covering clean / merge / bulk / lyric-fix / save-related edits
 
-| Toolbar | What it does |
+**📥 Add songs**
+- **Add files / drag-drop** (MIDI · KAR · MP3) and **Import folder** (recursive, CRC skip if already in the pack, preview with editable tags / origin)
+- **Auto song #:** unused codes from file names or sequential numbering
+- **Fix MIDI on import** (on by default): ALL CAPS lyrics → normal case, `~` written for a hyphen → `-`, missing artist found and names spelled like the pack — the original files are never changed
+- **Merge pack:** CRC-deduped merge from another `.krpk`
+
+**🧹 Clean up**
+- **Check songs folder…** — grades every MIDI / KAR in a folder (Good / Fair / Poor / No lyrics / Broken) by what the player really shows:
+  - lyrics present and **on time** with the melody (with a fixable offset when a whole lyric track is shifted)
+  - **non-lyric text on screen** (KAR headers, instrument names, credits, web addresses), odd symbols, wrong code page
+  - **explicit words** (English + Filipino), ALL CAPS, lines too long, no line breaks
+  - duplicates by title + artist; renames to `NNNNNN - Title - Artist` with unused numbers (never clashing with the open pack) and an undo list
+  - **Fix lyrics (N)** in place (originals backed up first) and **Clean copy…** (below)
+- **Clean copy…** — copies only the good songs of a folder that are **not already in the open pack** (same file checksum, or the same notes with different tags), not duplicates of each other, not explicit, best version per song — with lyrics fixed and names corrected against the pack. Songs with a pack song's title + artist but other music go to a separate review folder. Review list before anything is copied, plus a CSV report
+- **Fix lyrics…** — for every MIDI / KAR in the open pack: `~` hyphens → `-` and ALL CAPS → sentence case, one character for one (notes and timing untouched, every file checked byte by byte). Applied on Save, Undo reverts
+- **Clean titles:** local Title Case + artist spelling; optional MusicBrainz
+- **Genre QA:** religious denylist preview — clear false-positive genre tags
+- **Find duplicates:** code / title+artist / CRC
+- **Reassign codes…** bulk renumber · **Diff with pack…** CRC index diff (added / removed / changed tags)
+- **Compare with .idx…:** match song numbers against another karaoke catalog's `songs.idx` (titles and numbers only)
+
+**🌐 Online** (opt-in)
+- **Fetch tags** (title / artist / album / genre / year) and **Download covers** into the `.krcp` (one image per album), in the background with parallel workers
+- Sources in your order: **iTunes**, **Deezer**, **MusicBrainz + Cover Art Archive**, **Last.fm** (free API key) and **Spotify** (your own developer app)
+- **Pause / Continue downloads** button; downloads also pause automatically while saving (and the ones in flight finish first, so no tag is lost)
+- Optional auto-fetch for new songs and **auto-save after downloads**
+
+**📤 Export**
+- **Song list CSV** (`song_list.csv` + `song_tags.csv`), **Song book PDF…**
+- **Save covers pack / Export covers…** (`.krcp`, baked beside the `.krpk` on Save)
+- **Custom meta DB:** sparse `custom_meta.sqlite` keyed by payload CRC32 — **Seed custom DB**, **Custom DB CSV**, per-song revert; Save bakes it into the pack
+
+**🎛️ Settings & more**
+- Compact / comfortable density, font size, Dark / Light / OLED themes, online sources + keys, parallel downloads, custom meta DB path
+- **🧩 Shared format core:** the same `krpk_core` library as the player — KRPK / KRCP layout and song checks stay in sync
+
+| Toolbar group | Commands |
 | :--- | :--- |
-| New / Open / Save / Save As | Pack lifecycle |
-| Add files / Import folder | Bring in MIDI · KAR · MP3 |
-| Export CSV / Seed DB / Export custom CSV | Lists + custom meta DB |
-| Find dupes / Merge pack / Diff pack | Integrity & multi-pack ops |
-| Reassign codes / Undo | Bulk codes + undo stack |
-| Clean titles / Genre QA / Fetch tags | Metadata QA |
-| Covers / Save covers pack / Export covers… | `.krcp` album art |
-| Song book… | PDF catalog |
-| Auto song # / Has custom meta / Compact | Mode toggles |
+| File | New pack · Open pack… · Save · Save as… |
+| Add songs | Add files… · Import folder… · Merge pack… |
+| Clean up | Clean titles · Genre QA · Find duplicates · Reassign codes… · Diff with pack… · Check songs folder… · Fix lyrics… · Compare with .idx… |
+| Online | Fetch tags · Download covers |
+| Export | Song list CSV · Song book PDF… · Save covers pack · Export covers… · Seed custom DB · Custom DB CSV |
+| Chips | Auto song # · Fix MIDI on import · Custom meta only · Density |
+
+### 🧰 Command-line tools
+
+The same song checks run without the editor (from `packages/krpk_core`, `dart run bin/<tool>.dart`):
+
+| Tool | What it does |
+|------|--------------|
+| `check_songs.dart <folder>` | Grade a folder, plan clean numbered names, CSV report (rename with `--apply`) |
+| `clean_songs.dart <folder> --out <clean> --pack library.krpk [--review <folder>]` | The **Clean copy** above |
+| `fix_songs.dart <folder> --pack library.krpk [--apply]` | Fill missing artists, fix ALL CAPS / `~` lyrics in place (dry run by default) |
+| `rename_songs.dart <folder> --pack library.krpk [--apply]` | Correct titles / artists against the pack (dry run by default, undo list) |
 
 ## 📦 Pack formats
 
@@ -122,6 +155,8 @@ run-windows.bat release
 | `run-windows.bat run` | Launch existing Debug exe (no rebuild) |
 | `run-windows.bat release` | Rebuild Release, then launch |
 
+Settings and the custom meta DB live in `%APPDATA%\JC Villalon\JCV Karaoke Pack Editor\` (moved there automatically from the old "JCV's Karaoke Pack Editor" folder).
+
 ### Android APK
 
 ```bat
@@ -166,6 +201,7 @@ If you use any information or code from this project, please consider giving cre
     *   Platform (Windows / Android / Mac) and Flutter version (once source is published)
     *   A clear description of the problem and steps to reproduce it
     *   Screenshots if applicable
+    *   On Windows, the error log if the editor showed an error: `%APPDATA%\JC Villalon\JCV Karaoke Pack Editor\editor_errors.log`
 
 *   If you find this project useful, consider showing your appreciation:
     *   [Buy Me a Coffee](https://coff.ee/jcvsite)
@@ -181,4 +217,4 @@ Contributions will be welcome once the source tree is published.
 
 **GitHub**: [https://github.com/jcvsite/Karaoke-Pack-Editor](https://github.com/jcvsite/Karaoke-Pack-Editor)
 
-Open pack formats (**KRPK** / **KRCP**) and this editor are part of the **JCV's Karaoke** project.
+Open pack formats (**KRPK** / **KRCP**) and this editor are part of the **JCV Karaoke** project.
